@@ -25,14 +25,4 @@ export default defineConfig({
             input: './src/index.html',
         },
     },
-    plugins: [
-        viteStaticCopy({
-            targets: [
-                {
-                    src: 'src/target',
-                    dest: '../public'
-                }
-            ]
-        })
-    ]
 });
