@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VLibras Demo</title>
+  <style>
+    .vlibras-container {
+      width: 320px;
+      height: 240px;
+      position: fixed;
+      bottom: 0;
+      right: 0;
+      z-index: 1000;
+    }
+
+    .controls {
+      margin: 20px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      max-width: 500px;
+    }
+
+    button {
+      margin: 5px;
+      padding: 8px 12px;
+    }
+
+    textarea {
+      width: 100%;
+      height: 100px;
+      margin-bottom: 10px;
+    }
+
+    .speech-controls {
+      margin: 20px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      max-width: 500px;
+    }
+
+    #speech-status {
+      margin-top: 10px;
+      padding: 8px;
+      background-color: #f5f5f5;
+      border-radius: 4px;
+      min-height: 20px;
+    }
+
+    #speech-status .error {
+      color: #cc0000;
+    }
+
+    #speech-status p {
+      margin: 5px 0;
+    }
+
+    .speech-controls button {
+      padding: 8px 16px;
+    }
+
+    .speech-controls select {
+      padding: 8px;
+      margin-left: 8px;
+    }
+  </style>
+</head>
+<body>
+<div id="app">
+  <h1>VLibras Demo</h1>
+
+  <div class="controls">
+    <textarea id="text-to-translate" placeholder="Digite o texto para traduzir...">Olá, bem-vindo ao VLibras!</textarea>
+    <div>
+      <button id="translate-btn">Traduzir</button>
+      <button id="pause-btn">Pausar</button>
+      <button id="resume-btn">Continuar</button>
+      <button id="stop-btn">Parar</button>
+      <button id="welcome-btn">Boas-vindas</button>
+    </div>
+  </div>
+  <div class="speech-controls">
+    <h3>Reconhecimento de Voz</h3>
+    <div class="mode-selector">
+      <button id="start-speech-btn">Reconhecer Uma Vez</button>
+      <button id="start-continuous-btn">Modo Contínuo</button>
+      <button id="stop-speech-btn" disabled>Parar</button>
+    </div>
+    <div class="options">
+      <label for="language-select">Idioma:</label>
+      <select id="language-select">
+        <option value="pt-BR">Português (Brasil)</option>
+        <option value="en-US">Inglês (EUA)</option>
+        <option value="es-ES">Espanhol</option>
+        <option value="fr-FR">Francês</option>
+        <option value="de-DE">Alemão</option>
+        <option value="it-IT">Italiano</option>
+        <option value="ja-JP">Japonês</option>
+        <option value="ko-KR">Coreano</option>
+      </select>
+      <label for="target-select">Traduzir para:</label>
+      <select id="target-select">
+        <option value="libras">LIBRAS</option>
+        <option value="pt-BR">Português</option>
+        <option value="en-US">Inglês</option>
+      </select>
+    </div>
+    <div id="speech-status"></div>
+  </div>
+
+  <div id="vlibras-container" class="vlibras-container"></div>
+</div>
+
+<script type="module">
+  import VLibras from './index.ts';
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const player = new VLibras.Player();
+    const container = document.getElementById('vlibras-container');
+
+    // Inicializa o player
+    player.load(container);
+
+    // Event listeners
+    player.on('load', () => {
+      console.log('VLibras carregado com sucesso!');
+    });
+
+    player.on('error', (error) => {
+      console.error('Erro no VLibras:', error);
+    });
+
+    // Controles
+    document.getElementById('translate-btn').addEventListener('click', () => {
+      const text = document.getElementById('text-to-translate').value;
+      if (text) {
+        player.translate(text);
+      }
+    });
+
+    document.getElementById('pause-btn').addEventListener('click', () => {
+      player.pause();
+    });
+
+    document.getElementById('resume-btn').addEventListener('click', () => {
+      player.continue();
+    });
+
+    document.getElementById('stop-btn').addEventListener('click', () => {
+      player.stop();
+    });
+
+    document.getElementById('welcome-btn').addEventListener('click', () => {
+      player.playWellcome();
+    });
+
+    // Controles de reconhecimento de voz
+    const startSpeechBtn = document.getElementById('start-speech-btn');
+    const startContinuousBtn = document.getElementById('start-continuous-btn');
+    const stopSpeechBtn = document.getElementById('stop-speech-btn');
+    const languageSelect = document.getElementById('language-select');
+    const targetSelect = document.getElementById('target-select');
+    const speechStatus = document.getElementById('speech-status');
+
+// Verificar se o navegador suporta reconhecimento de voz
+    if (!VLibras.Player.isSpeechRecognitionSupported()) {
+      startSpeechBtn.disabled = true;
+      startContinuousBtn.disabled = true;
+      stopSpeechBtn.disabled = true;
+      speechStatus.innerHTML = '<p class="error">Seu navegador não suporta reconhecimento de voz.</p>';
+    }
+
+// Iniciar reconhecimento de voz uma única vez
+    startSpeechBtn.addEventListener('click', async () => {
+      startSpeechBtn.disabled = true;
+      startContinuousBtn.disabled = true;
+      stopSpeechBtn.disabled = false;
+
+      const selectedLanguage = languageSelect.value;
+      speechStatus.innerHTML = '<p>Iniciando reconhecimento de voz...</p>';
+
+      try {
+        const result = await player.listenSpeech(selectedLanguage);
+        speechStatus.innerHTML = `<p>Texto reconhecido: "${result}"</p>`;
+
+        // Traduzir o texto reconhecido
+        const targetLanguage = targetSelect.value;
+        if (targetLanguage === 'libras') {
+          player.translate(result);
+          speechStatus.innerHTML += '<p>Traduzindo para LIBRAS...</p>';
+        } else {
+          // Aqui precisaria implementar tradução para outros idiomas
+          speechStatus.innerHTML += `<p>Tradução para ${targetLanguage} não implementada</p>`;
+        }
+      } catch (error) {
+        speechStatus.innerHTML = `<p class="error">Erro: ${error}</p>`;
+      } finally {
+        startSpeechBtn.disabled = false;
+        startContinuousBtn.disabled = false;
+        stopSpeechBtn.disabled = true;
+      }
+    });
+
+// Iniciar reconhecimento contínuo
+    startContinuousBtn.addEventListener('click', () => {
+      startSpeechBtn.disabled = true;
+      startContinuousBtn.disabled = true;
+      stopSpeechBtn.disabled = false;
+
+      const selectedLanguage = languageSelect.value;
+      speechStatus.innerHTML = '<p>Modo contínuo ativado. Fale a qualquer momento...</p>';
+
+      player.speechProcessor.startContinuousListening(selectedLanguage);
+    });
+
+// Parar reconhecimento de voz
+    stopSpeechBtn.addEventListener('click', () => {
+      player.speechProcessor.cancelListening();
+      player.speechProcessor.stopContinuousListening();
+
+      stopSpeechBtn.disabled = true;
+      startSpeechBtn.disabled = false;
+      startContinuousBtn.disabled = false;
+      speechStatus.innerHTML += '<p>Reconhecimento de voz interrompido</p>';
+    });
+
+// Eventos do SpeechProcessor
+    player.speechProcessor.on('speech:listening', () => {
+      speechStatus.innerHTML = '<p>Ouvindo... Fale agora!</p>';
+    });
+
+    player.speechProcessor.on('speech:transcribed', (transcript) => {
+      const existingContent = speechStatus.innerHTML;
+      speechStatus.innerHTML = existingContent + `<p>Texto reconhecido: "${transcript}"</p>`;
+
+      // Em modo contínuo, traduzir automaticamente
+      if (stopSpeechBtn.disabled === false) {
+        const targetLanguage = targetSelect.value;
+        if (targetLanguage === 'libras') {
+          player.translate(transcript);
+        }
+      }
+    });
+
+    player.speechProcessor.on('speech:queued', (id, position) => {
+      speechStatus.innerHTML += `<p>Seu áudio está na posição ${position} da fila</p>`;
+    });
+
+    player.speechProcessor.on('speech:completed', (id, result) => {
+      speechStatus.innerHTML += `<p>Processamento concluído!</p>`;
+    });
+
+    player.speechProcessor.on('speech:error', (error) => {
+      speechStatus.innerHTML += `<p class="error">Erro: ${error}</p>`;
+    });
+
+// Limpar o status quando mudar o idioma
+    languageSelect.addEventListener('change', () => {
+      if (stopSpeechBtn.disabled) {
+        speechStatus.innerHTML = '';
+      }
+    });
+  });
+</script>
+</body>
+</html>
