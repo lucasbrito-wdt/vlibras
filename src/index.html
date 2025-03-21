@@ -66,6 +66,15 @@
       padding: 8px;
       margin-left: 8px;
     }
+
+    .vlibras-container {
+      width: 50%; /* Aumente a largura */
+      height: 50vh; /* Aumente a altura */
+      position: fixed;
+      bottom: 0;
+      right: 20%;
+      z-index: 1000;
+    }
   </style>
 </head>
 <body>
@@ -111,7 +120,9 @@
     <div id="speech-status"></div>
   </div>
 
-  <div id="vlibras-container" class="vlibras-container"></div>
+  <div style="display: flex;justify-content: center;width: 100%;">
+    <div id="vlibras-container" class="vlibras-container"></div>
+  </div>
 </div>
 
 <script type="module">

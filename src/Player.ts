@@ -60,6 +60,7 @@ class Player extends EventEmitter {
             {
                 translator: import.meta.env.VITE_TRANSLATOR_URL,
                 targetPath: 'target',
+                personalization: 'https://vlibras.gov.br/config/default_logo.json'
             },
             options
         );
@@ -131,7 +132,6 @@ class Player extends EventEmitter {
             this.stop();
         }
 
-
         try {
             this.translator.translate(text, window.location.host)
                 .then((gloss: string) => {
@@ -139,6 +139,7 @@ class Player extends EventEmitter {
                     this.emit('translate:end');
                 })
                 .catch((error: any) => {
+                    console.warn("Aqui: ",text)
                     this.play(text.toUpperCase());
                     this.emit(
                         'error',
@@ -146,6 +147,7 @@ class Player extends EventEmitter {
                     );
                 });
         } catch (error) {
+            console.warn("Aqui: ",text)
             this.play(text.toUpperCase());
             this.emit('error', 'translation_error');
         }
