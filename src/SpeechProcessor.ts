@@ -293,14 +293,10 @@ class SpeechProcessor extends EventEmitter {
 
         try {
             // Traduzir para o idioma alvo - por enquanto, simulamos a tradução
+            this.player.translate(task.text);
+
             const translatedText = await this.translateText(task.text, task.targetLanguage);
             console.log(`[SpeechProcessor] Tradução concluída: "${translatedText}"`);
-
-            // Se for tradução para Libras
-            if (task.targetLanguage === 'glosa' || task.targetLanguage === 'libras') {
-                // Passar para o player traduzir para Libras e animar
-                await this.player.translate(task.text);
-            }
 
             task.result = translatedText;
             task.status = 'completed';

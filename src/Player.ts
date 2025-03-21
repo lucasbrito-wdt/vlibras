@@ -60,7 +60,6 @@ class Player extends EventEmitter {
             {
                 translator: import.meta.env.VITE_TRANSLATOR_URL,
                 targetPath: 'target',
-                personalization: 'https://vlibras.gov.br/config/default_logo.json'
             },
             options
         );

@@ -13,6 +13,7 @@ interface Window {
     CounterGloss(counter: any, glosaLength: string): void;
     GetAvatar(avatar: any): void;
     FinishWelcome(bool: boolean): void;
+    setPersonalization(url: string): void;
 }
 
 declare global {
@@ -29,6 +30,7 @@ declare global {
         CounterGloss(counter: any, glosaLength: string): void;
         GetAvatar(avatar: any): void;
         FinishWelcome(bool: boolean): void;
+        setPersonalization(url: string): void;
     }
 }
 
@@ -92,6 +94,10 @@ class PlayerManagerAdapter extends EventEmitter {
         window.FinishWelcome = (bool) => {
             PlayerManagerAdapter.instance.emit("FinishWelcome", bool);
         };
+
+        window.setPersonalization = (personalization) => {
+            PlayerManagerAdapter.instance.emit("setPersonalization", personalization);
+        }
     }
 
     public setPlayerReference(player: any): void {
